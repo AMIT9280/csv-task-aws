@@ -1,20 +1,22 @@
 {
-  "name": "notifaction-service",
+  "name": "csv-writer-task",
   "version": "1.0.0",
-  "description": "Codingly template for Serverless Framework projects",
-  "author": "Ariel Weinberger <ariel@codingly.io>",
-  "license": "MIT",
-  "devDependencies": {
-    "babel-core": "^4.7.16",
-    "babel-loader": "^7.1.1",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-polyfill": "^6.23.0",
-    "babel-preset-env": "^1.4.0",
-    "webpack": "^4.35.2"
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "package": "serverless package"
   },
-  "dependencies": {
-    "aws-sdk": "^2.639.0",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
     "serverless": "^3.33.0",
     "serverless-offline": "^12.0.4"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1404.0",
+    "http-errors": "^2.0.0",
+    "ndjson": "^2.0.0",
+    "papaparse": "^5.4.1",
+    "uuid": "^9.0.0"
   }
 }

@@ -1,35 +1,28 @@
-service: notification-service
+service: csv-writer-task
 
 plugins:
-  # - serverless-bundle
-  # - serverless-pseudo-parameters
   - serverless-offline
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs16.x
   memorySize: 256
   region: ap-south-1
   stage: ${opt:stage, 'dev'}
   iamRoleStatements:
-    - ${file(iam/SendMailIAM.yml):SendMailIAM}
-  
-resources:
-  Resources:
-    MailQueue: ${file(resources/MailQueue.yml):MailQueue}
-
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource: "arn:aws:s3:::amit-s3-task-bucket/*"
 
 functions:
-  sendMail:
-    handler: src/handlers/sendMail.handler
+  processS3File:
+    handler: src/handler.processS3File
     events:
-      - sqs:
-          arn: ${self:custom.mailQueue.arn} 
-          batchSize: 1
-
-custom:
-  mailQueue:
-    name: MailQueue-${self:provider.stage}
-    arn: !GetAtt MailQueue.Arn
-  bundle:
-    linting: false
+      - s3:
+          bucket: amit-s3-task-bucket
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: input/
+          existing: true
