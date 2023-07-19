@@ -42,9 +42,6 @@ exports.processS3File = async (event, context) => {
       csvData.push(params)
     }
 
-    //Convert NDJSON to CSV format
-    const csvString = new Parser({ header: ['UUID', 'NAME', 'PHONE NUMBER', 'DATE OF BIRTH', 'EMAIL ID', 'COUNTRY'] }).parse(csvData).toString();
-
     // Upload the converted CSV file to the archival folder in S3
     const timestamp = new Date().getTime();
     const archiveKey = `archive/Archive_${timestamp}.csv`;
@@ -52,20 +49,13 @@ exports.processS3File = async (event, context) => {
     //create Csv File
     const csvWriter = createCsvWriter({
       path: archiveKey,
-      header:[
-        { id: 'uuid', title: 'UUID' },
-        { id: 'name', title: 'NAME' },
-        { id: 'phoneNumber', title: 'PHONE NUMBER' },
-        { id: 'dateOfBirth', title: 'DATE OF BIRTH' },
-        { id: 'emailId', title: 'EMAIL ID' },
-        { id: 'country', title: 'COUNTRY' }
-      ],
+      header:['UUID', 'NAME', 'PHONE NUMBER', 'DATE OF BIRTH', 'EMAIL ID', 'COUNTRY'],
       alwaysQuote: true
       
     });
 
   try{
-    csvWriter.writeRecords(csvString).then(() => {
+    csvWriter.writeRecords(csvData).then(() => {
       console.log(`File archived: s3://${bucket}/${archiveKey}`);
       return s3.readFile('data.csv');
     });
