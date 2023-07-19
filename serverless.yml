@@ -9,16 +9,23 @@ provider:
   memorySize: 256
   region: ap-south-1
   stage: ${opt:stage, 'dev'}
+  environment:
+    CsvTaskTable: ${self:custom.CsvTaskTable.name}
   iamRoleStatements:
+    - ${file(iam/CsvTaskTableIAM.yml):CsvTaskTableIAM}
     - Effect: Allow
       Action:
         - s3:GetObject
         - s3:PutObject
       Resource: "arn:aws:s3:::amit-s3-task-bucket/*"
 
+resources:
+  Resources:
+    CsvTaskTable: ${file(resources/CsvTaskTable.yml):CsvTaskTable}
+    
 functions:
   processS3File:
-    handler: src/handler.processS3File
+    handler: src/handlers/processS3File.handler
     events:
       - s3:
           bucket: amit-s3-task-bucket
@@ -26,3 +33,8 @@ functions:
           rules:
             - prefix: input/
           existing: true
+
+custom:
+  CsvTaskTable:
+    name: !Ref CsvTaskTable
+    arn:  !GetAtt CsvTaskTable.Arn

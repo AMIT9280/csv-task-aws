@@ -1,0 +1,11 @@
+CsvTaskTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: CsvTaskTable-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: uuid
+            AttributeType: S
+        KeySchema:
+          - AttributeName: uuid
+            KeyType: HASH

@@ -7,7 +7,7 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-exports.processS3File = async (event, context) => {
+module.exports.handler = async (event, context) => {
   try {
     const { Records: records } = event;
     const bucket = records[0].s3.bucket.name;
@@ -20,6 +20,7 @@ exports.processS3File = async (event, context) => {
     const parser = ndjson.parse();
     s3ReadStream.pipe(parser);
 
+    const dynamoDBPromises = [];
     const csvData = []
 
     for await (const record of parser) {
@@ -28,7 +29,7 @@ exports.processS3File = async (event, context) => {
 
       // Store the record in DynamoDB
       const params = {
-        TableName: 'CsvTaskTable',
+        TableName: process.env.CsvTaskTable,
         Item: {
           uuid,
           name,
@@ -38,14 +39,21 @@ exports.processS3File = async (event, context) => {
           country,
         },
       };
-      await dynamodb.put(params).promise();
-      csvData.push(params)
+      dynamoDBPromises.push(dynamodb.put(params).promise());
+      csvData.push({
+        uuid,
+        name,
+        phoneNumber,
+        dateOfBirth,
+        emailId,
+        country,
+      })
     }
-
+    await Promise.all(dynamoDBPromises);
     // Convert NDJSON to CSV format
     const csvWriter = createCsvWriter({
       path: '/tmp/data.csv',
-      header:[
+      header: [
         { id: 'uuid', title: 'UUID' },
         { id: 'name', title: 'NAME' },
         { id: 'phoneNumber', title: 'PHONE NUMBER' },
@@ -54,7 +62,7 @@ exports.processS3File = async (event, context) => {
         { id: 'country', title: 'COUNTRY' }
       ],
       alwaysQuote: true
-      
+
     });
     await csvWriter.writeRecords(csvData);
 
