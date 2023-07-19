@@ -42,29 +42,33 @@ exports.processS3File = async (event, context) => {
       csvData.push(params)
     }
 
+    // Convert NDJSON to CSV format
+    const csvWriter = createCsvWriter({
+      path: '/tmp/data.csv',
+      header:[
+        { id: 'uuid', title: 'UUID' },
+        { id: 'name', title: 'NAME' },
+        { id: 'phoneNumber', title: 'PHONE NUMBER' },
+        { id: 'dateOfBirth', title: 'DATE OF BIRTH' },
+        { id: 'emailId', title: 'EMAIL ID' },
+        { id: 'country', title: 'COUNTRY' }
+      ],
+      alwaysQuote: true
+      
+    });
+    await csvWriter.writeRecords(csvData);
+
     // Upload the converted CSV file to the archival folder in S3
     const timestamp = new Date().getTime();
     const archiveKey = `archive/Archive_${timestamp}.csv`;
 
-    //create Csv File
-    const csvWriter = createCsvWriter({
-      path: archiveKey,
-      header:['UUID', 'NAME', 'PHONE NUMBER', 'DATE OF BIRTH', 'EMAIL ID', 'COUNTRY'],
-      alwaysQuote: true
-      
-    });
-
-  try{
-    csvWriter.writeRecords(csvData).then(() => {
-      console.log(`File archived: s3://${bucket}/${archiveKey}`);
-      return s3.readFile('data.csv');
-    });
-  }catch(error){
-    console.log('Error while writing CSV file:', error)
-    throw new Error('Error while writing CSV file:')
-  }
-
-    console.log('Processing completed.');
+    const putObjectParams = {
+      Bucket: bucket,
+      Key: archiveKey,
+      Body: require('fs').createReadStream('/tmp/data.csv'),
+    };
+    await s3.putObject(putObjectParams).promise();
+    console.log(`File archived: s3://${bucket}/${archiveKey}`);
 
     return {
       status: 200,
