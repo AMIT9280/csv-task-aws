@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1404.0",
-    "csv-writer": "^1.6.0",
+    "csv-writer": "file:csv-writer-1.6.0.tgz",
     "http-errors": "^2.0.0",
     "ndjson": "^2.0.0",
     "papaparse": "^5.4.1",

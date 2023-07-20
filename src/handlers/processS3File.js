@@ -61,7 +61,8 @@ module.exports.handler = async (event, context) => {
         { id: 'emailId', title: 'EMAIL ID' },
         { id: 'country', title: 'COUNTRY' }
       ],
-      alwaysQuote: true
+      alwaysQuote: true,
+      shouldAddQuoteWhenEmpty:true
 
     });
     await csvWriter.writeRecords(csvData);
