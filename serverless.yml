@@ -33,6 +33,19 @@ functions:
           rules:
             - prefix: input/
           existing: true
+  getAllUsers:
+    handler: src/handlers/getAllUsers.handler
+    events:
+      - http:
+          method: GET
+          path: /users
+
+  getUserById:
+    handler: src/handlers/getUserById.handler
+    events:
+      - http:
+          method: GET
+          path: /users/{id}
 
 custom:
   CsvTaskTable:
