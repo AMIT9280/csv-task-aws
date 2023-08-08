@@ -1,0 +1,63 @@
+name: Deploy Code To AWS
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  npm-build:
+    name: npm-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+      - name: Install dependencies
+        run: yarn install
+
+  npm-test:
+    name: npm-test
+    runs-on: ubuntu-latest
+    needs: npm-build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore node modules cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+      # - name: Yarn Test
+      #   run: yarn test:unit
+
+  serverless-prod-deploy:
+    name: serverless-prod-deploy
+    runs-on: ubuntu-latest
+    needs: npm-test
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore node modules cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+      - name: Install Serverless Framework
+        run: npm install -g serverless
+      - name: Configure AWS environment
+        env:
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        run: |
+          chmod +x ./scripts/setAWSEnvironment.sh
+          ./scripts/setAWSEnvironment.sh
+      - name: serverless-deploy
+        run: serverless deploy
+
