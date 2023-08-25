@@ -2,7 +2,7 @@ const AWS = require('aws-sdk');
 const s3 = new AWS.S3();
 const ndjson = require('ndjson');
 const { v4: uuidv4 } = require('uuid');
-const { Parser } = require('papaparse');
+// const { Parser } = require('papaparse');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
@@ -11,13 +11,16 @@ module.exports.handler = async (event, context) => {
   try {
     const { Records: records } = event;
     const bucket = records[0].s3.bucket.name;
-    const key = records[0].s3.object.key;
+    const key = decodeURIComponent(records[0].s3.object.key.replace(/\+/g, " "));
+
 
     // Read the NDJSON file from S3
     const s3ReadStream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
 
     // Process each record in the NDJSON file
-    const parser = ndjson.parse();
+    const parser = ndjson.parse({
+      batchSize: 3,
+    });
     s3ReadStream.pipe(parser);
 
     const dynamoDBPromises = [];

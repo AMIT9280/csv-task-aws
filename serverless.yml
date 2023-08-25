@@ -15,9 +15,12 @@ provider:
     - ${file(iam/CsvTaskTableIAM.yml):CsvTaskTableIAM}
     - Effect: Allow
       Action:
-        - s3:GetObject
-        - s3:PutObject
-      Resource: "arn:aws:s3:::amit-s3-task-bucket/*"
+        - s3:*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: "*"
 
 resources:
   Resources:
